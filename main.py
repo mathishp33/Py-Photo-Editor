@@ -9,12 +9,12 @@ import threading
 class Application():
     def __init__(self):#fonction appelée à la création de la classe
         self.image = Image.new('RGB', (500, 500), (255, 0, 0)) #on initialize la variable image pour éviter une erreur si la fonction l.89 n'arrive pas a charger une image
-
     def show_img(self):#fonction pour afficher l'image conenue dans la variable self.image
         self.photo = ImageTk.PhotoImage(self.image)#on convertit le type d'image pour l'afficher
         self.image_label.config(image=self.photo)#on l'affiche dans un label tkinter
 
-    def paint(self):#fonction pour ouvrir l'éditeur d'image
+    #les lignes 17 à 23 et le script paint.py ne sont pas à prendre en compte
+    def paint(self):#fonction pour ouvrir le créateur d'image
         from paint import Paint#on importe le script paint
         self.paint_appli = Paint()#on attribue l'appli
         self.paint_appli.__run__()#on démarre l'appli
@@ -124,12 +124,17 @@ class Application():
     
     def andy_thread1(self):#fonction pour créer une image à la façon Andy Wahrol
         new_image = Image.new('RGB', (self.copy_img.width, self.copy_img.height), (0, 0, 0))#on crée une image de taille 3 fois plus petite pour optimiser
-        filter = [random.randint(0, 255), random.randint(0, 2)]#on choisit une couleur aléatoire à modifier
+        filter = [[random.randint(0, 255) for j in range(3)] for i in range(3)]#on choisit 3 couleurs aléatoire à modifier
         for i in range(self.copy_img.width):#pour chaque pixel en longueur
             for j in range(self.copy_img.height):#pour chaque pixel en hauteur
                 R, G, B = self.copy_img.getpixel((i, j))#on récupère les couleurs du pixel voulu
-                color = [R, G, B]#on créer la liste color contenant les couleurs 
-                color[filter[1]] = filter[0]#on remplace aléatoirement une couleur par une valeur aléatoire entre 0 et 255
+                gris = (R+G+B)//3#on calcule le niveau de gris
+                if gris<81:#si le gris est plus petit que 81
+                    color = filter[0]#on prend la 1ere couleur
+                elif gris<161:#si le gris est plus petit que 161
+                    color = filter[1]#on prend la 2eme couleur
+                else:#sinon
+                    color = filter[2]#on prend la 3eme couleur
                 new_image.putpixel((i, j), (tuple(color)))#on met le pixel contenant la couleur modifiée
         self.new_images.append(new_image)#on ajoute cette image modifiée à la liste des 9 images modifiées
     
@@ -165,7 +170,7 @@ class Application():
         k = 0#on initialise une variable indiquant l'index dans la liste
         for i in range(0, self.image.width-self.copy_img.width+1, self.copy_img.width):#on fait une boucle de 3 positions x pour paste l'image
             for j in range(0, self.image.height-self.copy_img.height+1, self.copy_img.height):#on fait une boucle de 3 positions y pour paste l'image
-                Image.Image.paste(self.big_img, self.new_images[k], (i, j))#on colle chaque petite images à sa position i et j
+                Image.Image.paste(self.big_img, self.new_images[k], (i, j))#on colle chaque petite image à sa position i et j
                 k+=1#on incrémente l'index pour avoir le prochain élément dans la liste
         self.image = self.big_img#on définit l'image principale comme l'image finie
         self.show_img()#on affiche
@@ -221,20 +226,19 @@ class Application():
         self.edit_menu.add_cascade(label='Rotate', command=self.rotate)#on ajoute le boutton rotate
 
         self.filter_menu.add_cascade(label='Blur Function', command=self.blur) #on ajoute le boutton Blur Fonction au menu filter
-        self.andy_menu = tk.Menu(self.filter_menu, tearoff=0)
-        self.filter_menu.add_cascade(label='Andy Wahrol Functions', menu=self.andy_menu)
-        self.andy_menu.add_cascade(label='Add Method Function', command=self.andy_it2) #on ajoute le boutton Andy Warhol 
-        self.andy_menu.add_cascade(label='Replace Method Function', command=self.andy_it1) #on ajoute le boutton Andy Warhol 
+        self.andy_menu = tk.Menu(self.filter_menu, tearoff=0)#on créer un menu pour choisir entre les deux fonctions andy wahrol 
+        self.filter_menu.add_cascade(label='Andy Wahrol Functions', menu=self.andy_menu)#on affiche le menu
+        self.andy_menu.add_cascade(label='Add Method Function', command=self.andy_it2) #on ajoute le boutton Andy Warhol pour la méthode add
+        self.andy_menu.add_cascade(label='3 Division Method Function', command=self.andy_it1) #on ajoute le boutton Andy Warhol pour la méthode replace
         self.filter_menu.add_cascade(label='Change Saturation', command=self.change_sat) #on ajoute le boutton Change Saturation
-
 
         self.convert_menu.add_cascade(label='Convert to RGBA', command=self.convert_rgba)#on fait la meme chose pour le menu convert
         self.convert_menu.add_cascade(label='Convert to RGB', command=self.convert_rgb)
         self.convert_menu.add_cascade(label='Convert to Gray', command=self.convert_gray)
 
-
         self.image_label = tk.Label(self.root)#on définit un label qui contiendra plus tard une image
         self.image_label.grid()#on affiche le label
+
         
         self.root.mainloop()#cela répète les instructions dans __run__(self)
 
